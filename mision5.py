@@ -3,8 +3,13 @@
 import nxt.bluesock
 from nxt.sensor import *
 import time
-from oct2py import octave
+#from oct2py import octave
+import matplotlib.pyplot as plt
 
+# que cuente el numero de veces que aplaudimos
+# en un periodo de 10 segundos. El resultado debe mostrarse en la pantalla del PC, asi
+# como una grafica en la que se dibuje la intensidad del sonido que se ha ido obteniendo
+# en esos 10 segundos.
 
 def connect(idmac):
 
@@ -25,7 +30,11 @@ def run(brick):
         samples.append(sensor.get_sample())
 
     # 3.Usamos un script de octave para generar una grafica y decidir
-    octave.plot(samples)
+    #octave.plot(samples)
+    
+    plt.plot(samples)
+    plt.ylabel('Datos sonido')
+    plt.show()
 
     # 4. Opcional. Emitir sonido como finalizacion
     brick.play_tone_and_wait(659, 500)
@@ -33,6 +42,5 @@ def run(brick):
 if __name__=='__main__':
     brick= connect('00:16:53:09:46:3B')
     run(brick)
-
 
 

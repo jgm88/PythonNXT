@@ -4,6 +4,9 @@ import nxt.bluesock
 from nxt.sensor import *
 import time
 
+#Programa en la que el robot avance
+#indefinidamente hasta que alcance una línea negra. Si encuentra algún
+#obstáculo, debe parar y cambiar de trayectoria.
 
 def connect(idmac):
 

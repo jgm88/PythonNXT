@@ -4,6 +4,8 @@ import nxt.bluesock
 from nxt.sensor import *
 import time
 
+#Realiza un programa en el que el robot se
+#mueva indefinidamente hacia adelante hasta que detecte un choque.
 
 def connect(idmac):
 
