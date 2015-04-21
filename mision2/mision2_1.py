@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import nxt.bluesock
+from nxt.motor import *
 from nxt.sensor import *
 import time
 
@@ -17,21 +18,20 @@ def connect(idmac):
 def run(brick):
 
     # 1.Encedemos sensor de choque
-    sensor= Touch(brick, PORT_1)
+    sensor = Touch(brick, PORT_1)
 
     # 2.Encender Motor B y Motor C, sentido hacia adelante
-    sync = SynchronizedMotors(Motor(brick, PORT_B),Motor(brick, PORT_C))
-    sync.run(100, True)
+    bPadre = Motor(brick, PORT_B)
+    bHijo = Motor(brick, PORT_C)
+    sync = SynchronizedMotors(bPadre, bHijo, 0)	
+    sync.run(-100) # El sensor de choque lo tiene detras
 
-    # 3.Avanzar hasta encontrar linea negra
-    while sensor.get_sample()==0:
-        pass
-    sync.brake()
+    while sensor.is_pressed()==False: 
+        pass;    
 
-    # 4. Opcional. Emitir sonido como finalizacion
-    brick.play_tone_and_wait(659, 500)
+    sync.brake()                  
 
 
-def __name__=='__main__':
+if __name__=='__main__':
     brick= connect('00:16:53:09:46:3B')
     run(brick)

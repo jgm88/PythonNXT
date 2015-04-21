@@ -3,6 +3,8 @@
 import nxt.bluesock
 from nxt.sensor import *
 import time
+from nxt.motor import *
+import msvcrt
 
 
 def connect(idmac):
@@ -12,37 +14,87 @@ def connect(idmac):
     return b
 
 
-def run(brick, line):
+def run(brick):
 
-    # 1.Encedemos sensor de choque y esperemos el primer contacto
-    sensor= Touch(brick, PORT_1)
-    while sensor.get_sample()==0:
-        pass;
-
-    # 2.En los siguientes dos segundos esperamos contactos
-    samples=1
-    current_time= time.time()
-    while (time.time() - current_time)<2.0:
-        if(sensor.get_sample()==1):
-            samples++
-
-
-    print "samples",samples
-    # 3.Encender Motor B y Motor C
-    sync = SynchronizedMotors(Motor(brick, PORT_B),Motor(brick, PORT_C))
+    # 1.Encedemos sensor de choque
+    sensor = Touch(brick, PORT_1)
     
-    # 1. Giro 45º y continuar recto
-    # 2. Giro 90º sentido contrario y continuar
-    # 3. Giro 180º y continuar
+    # Encender Motor B y Motor C, sentido hacia adelante
+    bPadre = Motor(brick, PORT_B)
+    bHijo = Motor(brick, PORT_C)
+    sync = SynchronizedMotors(bPadre, bHijo, 0)	
+    
+    print "Espero sensor de choque"
+    while sensor.is_pressed() == False: 
+        pass;    
+    
+    sync.run(70) # El sensor de choque lo tiene detras    
+
+    # Esperamos a que vuelva a ser False
+    while sensor.is_pressed() == True: 
+        pass; 
+
+    # 2.En los siguientes cinco segundos esperamos contactos
+    samples = 0
+    current_time = time.time()
+
+    print "Recolecto Samples"
+
+    # Con estos semaforos nos aseguramos recolectar los samples correctos
+    puedoRecolectar = False
+    puedoSerPulsado = True
+
+    while (time.time() - current_time)<5.0:                
+        if(puedoSerPulsado and sensor.is_pressed()):
+            puedoRecolectar = True
+            puedoSerPulsado = False
+        if(puedoRecolectar):
+            puedoRecolectar = False
+            samples+=1
+        if(sensor.is_pressed() == False):
+            puedoSerPulsado = True
+
+    print "samples: ",samples
+    
+    sync.brake()
+
+    # 1. Giro 45 y continuar recto
+    if(samples == 1):
+        bPadre.turn(100, 45)
+        bHijo.turn(-100, 45)
+        sync.run(70)
+    # 2. Giro 90 sentido contrario y continuar
+    elif(samples == 2):
+        bPadre.turn(-100, 90)
+        bHijo.turn(100, 90)
+        sync.run(70)
+    # 3. Giro 180 y continuar
+    elif(samples == 3):
+        bPadre.turn(100, 180)
+        bHijo.turn(-100, 180)
+        sync.run(70)
     # 4. Detener robot y mover brazo de arriba a abajo 2 veces
+    elif(samples == 4):
+        arm= Motor(brick, PORT_A)
+        
+        arm.reset_position(True)
+        arm.turn(20, 50)
+        arm.reset_position(True)        
+        arm.turn(-20, 50)
 
+        arm.reset_position(True)
+        arm.turn(20, 50)
+        arm.reset_position(True)        
+        arm.turn(-20, 50)
 
-def __name__=='__main__':
+    while True:            
+        if msvcrt.kbhit():
+            key = msvcrt.getch()
+            if(key == "p"):
+                print "PARO"
+                break;   
+    sync.brake()
+
+if __name__=='__main__':
     brick= connect('00:16:53:09:46:3B')
-    line=0
-    while (line<3):
-        run(brick<line)
-        line++
-
-    # 4. Opcional. Emitir sonido como finalizacion
-    brick.play_tone_and_wait(659, 500)
+    run(brick)

@@ -2,11 +2,13 @@
 
 import nxt.bluesock
 from nxt.sensor import *
+from nxt.motor import *
 import time
+import msvcrt
 
 #Programa en la que el robot avance
-#indefinidamente hasta que alcance una línea negra. Si encuentra algún
-#obstáculo, debe parar y cambiar de trayectoria.
+#indefinidamente hasta que alcance una linea negra. Si encuentra algun
+#obstaculo, debe parar y cambiar de trayectoria.
 
 def connect(idmac):
 
@@ -19,15 +21,29 @@ def run(brick):
 
     # 1.Encedemos sensor de luz
     sensor= Light(brick, PORT_3)
+    sensor.set_illuminated(True)
 
     # 2.Encender Motor B y Motor C, sentido hacia adelante
-    sync = SynchronizedMotors(Motor(brick, PORT_B),Motor(brick, PORT_C))
-    sync.run(100, True)
+    bPadre = Motor(brick, PORT_B)
+    bHijo = Motor(brick, PORT_C)
+    sync = SynchronizedMotors(bPadre, bHijo, 0) 
+    sync.run(100)
 
     # 3.Avanzar hasta encontrar linea negra
-    while sensor.get_sample()>15:
-        pass
+    while sensor.get_lightness() < 500:
+        pass;
+        """
+        print "Data:" , sensor.get_lightness()        
+        if msvcrt.kbhit():
+            key = msvcrt.getch()
+            if(key == "p"):
+                print "PARO"
+                break;     
+                """
+        
+        #pass
     sync.brake()
+    sensor.set_illuminated(False)
 
     # 4. Opcional. Emitir sonido como finalizacion
     brick.play_tone_and_wait(659, 500)

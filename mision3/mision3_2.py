@@ -16,14 +16,15 @@ def run(brick, line):
 
     # 1.Encedemos sensor de luz
     sensor= Light(brick, PORT_3)
+    sensor.set_illuminated(True)
 
     # 2.Encender Motor B y Motor C, sentido hacia adelante
     sync = SynchronizedMotors(Motor(brick, PORT_B),Motor(brick, PORT_C))
-    sync.run(100, True)
+    sync.run(80, True)
 
     # 3.Mover hasta la linea line
     lines_passed=0
-    while sensor.get_sample()>15:
+    while sensor.get_lightness() < 500:
         if(line<lines_passed):
             lines_passed++
         else:
@@ -31,7 +32,7 @@ def run(brick, line):
     sync.brake()
 
     #3.Volvemos al inicio ¡¡¡¡¡marcha atras!!!!, en el pdf pone giro sobre si mismo, hay que preguntar si esto se puede tambien, sino cambiaremos por giro
-    sync.run(-100, True)
+    sync.run(-80, True)
     while sensor.get_sample()>15:
         if(lines_passed!=0):
             lines_passed++
