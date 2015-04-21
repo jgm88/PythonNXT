@@ -22,7 +22,7 @@ def run(brick):
 	bHijo = Motor(brick, PORT_C)
 	sync = SynchronizedMotors(bPadre, bHijo, 0)	
 
-	arm= Motor(brick, PORT_A)
+	arm = Motor(brick, PORT_A)
 	
 # hacer vector de estados, [mov+,mov-,stop] para saber en que direccion acelerar
 # cuando se da + o - 
@@ -46,7 +46,7 @@ def run(brick):
 					isOn = True
 					sync.run(power)
 			elif(key == 's'):
-				if(!isOn):
+				if(isOn == False):
 					isOn = True
 					sync.run(power*-1)
 
