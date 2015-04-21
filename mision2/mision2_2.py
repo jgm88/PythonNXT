@@ -34,7 +34,7 @@ def run(brick):
     while sensor.is_pressed() == True: 
         pass; 
 
-    # 2.En los siguientes cinco segundos esperamos contactos
+    # 2.En los siguientes dos segundos esperamos contactos
     samples = 0
     current_time = time.time()
 
@@ -44,7 +44,7 @@ def run(brick):
     puedoRecolectar = False
     puedoSerPulsado = True
 
-    while (time.time() - current_time)<5.0:                
+    while (time.time() - current_time)<2.0:                
         if(puedoSerPulsado and sensor.is_pressed()):
             puedoRecolectar = True
             puedoSerPulsado = False
