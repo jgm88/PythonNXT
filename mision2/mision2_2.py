@@ -1,100 +1,103 @@
 #!/usr/bin/env python
 
-import nxt.bluesock
 from nxt.sensor import *
-import time
 from nxt.motor import *
-import msvcrt
+import nxt.bluesock
+import time
+import math
 
+class Robot:
 
-def connect(idmac):
-
-    m = nxt.locator.Method(False, True, False, False)
-    b = nxt.bluesock.BlueSock(idmac).connect()
-    return b
-
-
-def run(brick):
-
-    # 1.Encedemos sensor de choque
-    sensor = Touch(brick, PORT_1)
-    
-    # Encender Motor B y Motor C, sentido hacia adelante
-    bPadre = Motor(brick, PORT_B)
-    bHijo = Motor(brick, PORT_C)
-    sync = SynchronizedMotors(bPadre, bHijo, 0)	
-    
-    print "Espero sensor de choque"
-    while sensor.is_pressed() == False: 
-        pass;    
-    
-    sync.run(70) # El sensor de choque lo tiene detras    
-
-    # Esperamos a que vuelva a ser False
-    while sensor.is_pressed() == True: 
-        pass; 
-
-    # 2.En los siguientes dos segundos esperamos contactos
-    samples = 0
-    current_time = time.time()
-
-    print "Recolecto Samples"
-
-    # Con estos semaforos nos aseguramos recolectar los samples correctos
-    puedoRecolectar = False
-    puedoSerPulsado = True
-
-    while (time.time() - current_time)<2.0:                
-        if(puedoSerPulsado and sensor.is_pressed()):
-            puedoRecolectar = True
-            puedoSerPulsado = False
-        if(puedoRecolectar):
-            puedoRecolectar = False
-            samples+=1
-        if(sensor.is_pressed() == False):
-            puedoSerPulsado = True
-
-    print "samples: ",samples
-    
-    sync.brake()
-
-    # 1. Giro 45 y continuar recto
-    if(samples == 1):
-        bPadre.turn(100, 45)
-        bHijo.turn(-100, 45)
-        sync.run(70)
-    # 2. Giro 90 sentido contrario y continuar
-    elif(samples == 2):
-        bPadre.turn(-100, 90)
-        bHijo.turn(100, 90)
-        sync.run(70)
-    # 3. Giro 180 y continuar
-    elif(samples == 3):
-        bPadre.turn(100, 180)
-        bHijo.turn(-100, 180)
-        sync.run(70)
-    # 4. Detener robot y mover brazo de arriba a abajo 2 veces
-    elif(samples == 4):
-        arm= Motor(brick, PORT_A)
+    def __init__(self, brick, tam_encoder=360, wheel_diameter=5.6):
         
-        arm.reset_position(True)
-        arm.turn(20, 50)
-        arm.reset_position(True)        
-        arm.turn(-20, 50)
+        self.brick_= brick
+        self.separationBetweenWheels_= 8
+        self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
+        self.cuenta_= ((encoder_*math.pi)/wheelDiameter_)
+        self.sensorTouch_= Touch(self.brick, PORT_1)
+        self.arm= Motor(self.brick_, PORT_A)
 
-        arm.reset_position(True)
-        arm.turn(20, 50)
-        arm.reset_position(True)        
-        arm.turn(-20, 50)
+        # 1. Calculamos las cuentas que tendra que pasar para girar hacia un stolado.
+        # Si suponemos que un giro sobre si mismo es de de radio separationBewteenWheels, un giro solo ocupara una
+        # cuarta parte del perimetro de la circunferencia.
+        turn_perimeter = (math.pi * self.wheelDiameter_) / 4
+        self.cuentasGiro_ = turn_perimeter / self.cuenta_
 
-    while True:            
-        if msvcrt.kbhit():
-            key = msvcrt.getch()
-            if(key == "p"):
-                print "PARO"
-                break;   
-    sync.brake()
+    def mision(self):
+
+        print "Espero sensor de choque"
+        while self.sensorTouch_.is_pressed() == False: 
+            pass;  
+
+        self.syncMotor_.run(70)
+
+        while self.sensorTouch_.is_pressed() == True: 
+            pass;  
+
+
+        # 2. Esperamos durante 2 segundos contactos
+        print "Recolecto samples"
+        samples= 0
+        current_time= time.time()
+
+        # Con estos semaforos nos aseguramos recolectar los samples correctos
+        puedoRecolectar = False
+        puedoSerPulsado = True
+
+        while (time.time() - current_time)<2.0:                
+            if(puedoSerPulsado and self.sensorTouch_.is_pressed()):
+                puedoRecolectar = True
+                puedoSerPulsado = False
+            if(puedoRecolectar):
+                puedoRecolectar = False
+                samples+=1
+            if(self.sensorTouch_.is_pressed() == False):
+                puedoSerPulsado = True
+
+        print "Samples recogidos: ",samples
+        self.syncMotor_.brake()
+
+
+        # 1. Giro 45 y continuar recto
+        if(samples == 1):
+            self.syncMotor_.leader.weak_turn(80, self.cuentasGiro_/2)
+            self.syncMotor_.run(70)
+        # 2. Giro 90 sentido contrario y continuar
+        elif(samples == 2):
+            self.syncMotor_.leader.weak_turn(-80, self.cuentasGiro_)
+            self.syncMotor_.run(70)
+        # 3. Giro 180 y continuar
+        elif(samples == 3):
+            self.syncMotor_.leader.weak_turn(80, self.cuentasGiro_*2)
+            self.syncMotor_.run(70)
+        # 4. Detener robot y mover brazo de arriba a abajo 2 veces
+        elif(samples == 4):
+            self.syncMotor_.brake()
+
+            self.arm.reset_position(True)
+            self.arm.turn(20, 50)
+            self.arm.reset_position(True)        
+            self.arm.turn(-20, 50)
+
+            self.arm.reset_position(True)
+            self.arm.turn(20, 50)
+            self.arm.reset_position(True)        
+            self.arm.turn(-20, 50)
+
+        while True:            
+            if msvcrt.kbhit():
+                key = msvcrt.getch()
+                if(key == "p"):
+                    print "PARO"
+                    break; 
+        
+        self.syncMotor_.brake()
+        self.syncMotor_.idle()
+
+
+        self.brick_.play_tone_and_wait(659, 500)
 
 if __name__=='__main__':
-    brick= connect('00:16:53:09:46:3B')
-    run(brick)
+    #robot= Robot(nxt.locator.find_one_brick())
+    robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
+    robot.mision()

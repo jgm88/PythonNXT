@@ -4,51 +4,31 @@ import nxt.bluesock
 from nxt.sensor import *
 from nxt.motor import *
 import time
-import msvcrt
 
-#Programa en la que el robot avance
-#indefinidamente hasta que alcance una linea negra. Si encuentra algun
-#obstaculo, debe parar y cambiar de trayectoria.
+class Robot:
 
-def connect(idmac):
+    def __init__(self, brick):
 
-    m = nxt.locator.Method(False, True, False, False)
-    b = nxt.bluesock.BlueSock(idmac).connect()
-    return b
+        self.brick_= brick
+        self.sensorTouch= Touch(self.brick, PORT_1)
+        self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
+        self.sensorLight_= Light(brick, PORT_3)
+        self.sensorLight_.set_illuminated(True)
 
+    def mision(self):
 
-def run(brick):
+        self.syncMotor_.run(80)
+        # 1.Avanzar hasta encontrar linea negra
+        while True:
+            print "Data: ", sensor.get_lightness()
+            if sensor.get_lightness()>400:
+                break;
+        self.syncMotor_.brake()
 
-    # 1.Encedemos sensor de luz
-    sensor= Light(brick, PORT_3)
-    sensor.set_illuminated(True)
-
-    # 2.Encender Motor B y Motor C, sentido hacia adelante
-    bPadre = Motor(brick, PORT_B)
-    bHijo = Motor(brick, PORT_C)
-    sync = SynchronizedMotors(bPadre, bHijo, 0) 
-    sync.run(100)
-
-    # 3.Avanzar hasta encontrar linea negra
-    while sensor.get_lightness() < 500:
-        pass;
-        """
-        print "Data:" , sensor.get_lightness()        
-        if msvcrt.kbhit():
-            key = msvcrt.getch()
-            if(key == "p"):
-                print "PARO"
-                break;     
-                """
-        
-        #pass
-    sync.brake()
-    sensor.set_illuminated(False)
-
-    # 4. Opcional. Emitir sonido como finalizacion
-    brick.play_tone_and_wait(659, 500)
-
+        # 2. Opcional. Emitir sonido como finalizacion
+        self.brick_.play_tone_and_wait(659, 500)
 
 if __name__=='__main__':
-    brick= connect('00:16:53:09:46:3B')
-    run(brick)
+    #robot= Robot(nxt.locator.find_one_brick())
+    robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
+    robot.mision()

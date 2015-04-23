@@ -2,85 +2,56 @@
 
 import nxt.bluesock
 from nxt.motor import *
+import math
 import time
 
+class Robot:
 
-def connect(idmac):
+    def __init__(self, brick, tam_encoder=360, wheel_diameter=5.6):
+        
+        self.brick_= brick
+        self.separationBetweenWheels_= 8
+        self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
+        self.cuenta_= ((encoder_*math.pi)/wheelDiameter_)
 
-    m = nxt.locator.Method(False, True, False, False)
-    b = nxt.bluesock.BlueSock(idmac).connect()
-    return b
+        # 1. Calculamos las cuentas que tendra que pasar para girar hacia un stolado.
+        # Si suponemos que un giro sobre si mismo es de de radio separationBewteenWheels, un giro solo ocupara una
+        # cuarta parte del perimetro de la circunferencia.
+        turn_perimeter = (math.pi * self.wheelDiameter_) / 4
+        self.cuentasGiro = turn_perimeter / self.cuenta_
 
+    def moveTurnTime(self,time):
+         current_time = time.time()
+        self.syncMotor_.run(80)
+        while (time.time() - current_time < time):
+            pass;      
+        sync.brake()
 
-# Mision
-def run(brick):
-    
-    # 1.Encender Motor B y Motor C, sentido hacia adelante
-    bPadre = Motor(brick, PORT_B)
-    bHijo = Motor(brick, PORT_C)
-    sync = SynchronizedMotors(bPadre, bHijo, 0)
-    
-    # 2.Moverse hacia adelante durante 3 segundos
-    current_time = time.time()
-    sync.run(100)
-    while (time.time() - current_time < 3.0):
-        pass;      
-    sync.brake()
+    def mision(self):
 
-    ## EL GIRO DEBERIA SER IGUAL, COMPENSAMOS LOS MOTORES
+        # 1.Mover robot hacia delante 3 segundos
+        moveTurnTime(3.0)
 
-    # 3.Girar a la derecha
-    bPadre.turn(100, 180)
-    bHijo.turn(-100, 180)
-    time.sleep(1)
-
-    # 4.Moverse hacia adelante durante 2 segundos
-    current_time = time.time()
-    sync.run(100)
-    while (time.time() - current_time < 2.0):
-        pass;      
-    sync.brake()
-    
-    # 5.Girar a la izquierda
-    bPadre.turn(-100, 180)
-    bHijo.turn(100, 180)
-    time.sleep(1)
-
-    # 6.Moverse hacia adelante durante 3 segundos
-    current_time = time.time()
-    sync.run(100)
-    while (time.time() - current_time < 3.0):
-        pass;       
-    sync.brake()
-
-    # 7.Girar a la izquierda
-    bPadre.turn(-100, 180)
-    bHijo.turn(100, 180)
-    time.sleep(1)
-
-    # 8.Moverse hacia adelante durante 1 segundos
-    current_time = time.time()
-    sync.run(100)
-    while (time.time() - current_time < 1.0):
-        pass;        
-    sync.brake()
-
-    # 9. Para Motores B y C
-    sync._disable()
-
-    # 10. Opcional. Emitir sonido como finalizacion
-    brick.play_tone_and_wait(659, 500)
+        # 2.Girar a la derecha
+        self.syncMotor_.follower.weak_turn(80, self.cuentasGiro)
 
 
-# Mision alternativa. Final a inicio.
-def optional(b):
+        # 3.Mover robot hacia delante 2 segundos
+        moveTurnTime(2.0)
 
-    m_left = Motor(b, PORT_B)
-    m_left.turn(100, 180)
-    m_right = Motor(b, PORT_C)
-    m_right.turn(-100, 180)
+        # 4. Girar a la izquierda
+        self.syncMotor_.leader.weak_turn(80, self.cuentasGiro)
+
+        # 5. Moverse hacia delante 1 segundos
+        moveTurnTime(1.0)
+
+        # 6. Dessincrnizacion motores
+        self.syncMotor_.idle()
+
+        # 7. Emitir sonido de finalizacion
+        self.brick_.play_tone_and_wait(659, 500)
 
 if __name__=='__main__':
-    brick= connect('00:16:53:09:46:3B')
-    run(brick)
-    #optional(brick)
+    #robot= Robot(nxt.locator.find_one_brick())
+    robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
+    robot.mision()
