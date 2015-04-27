@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 
 import nxt.bluesock
+import nxt.locator
 from nxt.motor import *
 import math
 import time
+
+def connect(mode, mac):
+    if(mode=="Usb"):
+        return nxt.locator.find_one_brick()
+    else:
+    	return nxt.bluesock.BlueSock(mac).connect()
+
 
 class Robot:
 
@@ -57,7 +65,3 @@ class Robot:
         # 7. Emitir sonido de finalizacion
 		self.brick_.play_tone_and_wait(659, 500)
 
-if __name__=='__main__':
-    robot= Robot(nxt.locator.find_one_brick())
-    #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
-    robot.mision(10.0)

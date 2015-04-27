@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 
 import nxt.bluesock
+import nxt.locator
 from nxt.motor import *
 import math
 import time
+
+def connect(mode, mac):
+    if(mode=="Usb"):
+        return nxt.locator.find_one_brick()
+    else:
+        return nxt.bluesock.BlueSock(mac).connect()
+
 
 class Robot:
 
@@ -33,13 +41,11 @@ class Robot:
 
         # 1.Mover robot hacia delante 3 segundos
         self.moveTurnTime(3.0)
-        # 2.Girar a la derecha
-       # print "init: ", self.syncMotor_.follower.get_tacho()
         time.sleep(1)
+         
+        # 2.Girar a la derecha
         self.syncMotor_.leader.weak_turn(80, self.cuentasGiro_)
         time.sleep(1)
-        
-        #print "final: ", self.syncMotor_.follower.get_tacho()
 
         # 3.Mover robot hacia delante 2 segundos
         self.moveTurnTime(2.0)
@@ -63,8 +69,3 @@ class Robot:
 
         # 7. Emitir sonido de finalizacion
         self.brick_.play_tone_and_wait(659, 500)
-
-if __name__=='__main__':
-    robot= Robot(nxt.locator.find_one_brick())
-    #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
-    robot.mision()
