@@ -5,33 +5,30 @@ from nxt.motor import *
 from nxt.sensor import *
 import time
 
-#Realiza un programa en el que el robot se
-#mueva indefinidamente hacia adelante hasta que detecte un choque.
+class Robot:
 
-def connect(idmac):
+    def __init__(self, brick):
 
-    m = nxt.locator.Method(False, True, False, False)
-    b = nxt.bluesock.BlueSock(idmac).connect()
-    return b
+        self.brick_= brick
+        self.sensorTouch= Touch(self.brick_, PORT_1)
+        self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
 
 
-def run(brick):
+    def mision(self):
 
-    # 1.Encedemos sensor de choque
-    sensor = Touch(brick, PORT_1)
+        # 1.Mover hacia delante hasta que se pulse el sensor de choque
+        self.syncMotor_.run(-80)
+        
+        while self.sensorTouch.is_pressed()==False: 
+            pass;    
 
-    # 2.Encender Motor B y Motor C, sentido hacia adelante
-    bPadre = Motor(brick, PORT_B)
-    bHijo = Motor(brick, PORT_C)
-    sync = SynchronizedMotors(bPadre, bHijo, 0)	
-    sync.run(-100) # El sensor de choque lo tiene detras
+        self.syncMotor_.brake()
+        self.syncMotor_.idle()   
 
-    while sensor.is_pressed()==False: 
-        pass;    
-
-    sync.brake()                  
-
+        # 2. Opcional. Emitir sonido como finalizacion
+        self.brick_.play_tone_and_wait(659, 500)                              
 
 if __name__=='__main__':
-    brick= connect('00:16:53:09:46:3B')
-    run(brick)
+    robot= Robot(nxt.locator.find_one_brick())
+    #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
+    robot.mision()

@@ -10,31 +10,21 @@ import nxt.bluesock
 from nxt.sensor import *
 from nxt.motor import *
 import time
-import msvcrt
 
-def connect(idmac):
+class Robot:
 
-    b = nxt.bluesock.BlueSock(idmac).connect()
-    return b
+    def __init__(self, brick):
 
-
-def run(brick):
-
-    # 1.Encedemos sensor de luz
-    sensor= UltraSound(brick, PORT_4)
-
-    # 2.Encender Motor B y Motor C, sentido hacia adelante
-    bPadre = Motor(brick, PORT_B)
-    bHijo = Motor(brick, PORT_C)
-    sync = SynchronizedMotors(bPadre, bHijo, 0) 
-    sync.run(80)
-
-    sync.brake()
+        self.brick_= brick
+        self.sensorTouch= Touch(self.brick, PORT_1)
+        self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
+        self.sensorUltraSound_= UltraSound(self.brick_, PORT_4)
 
     # 4. Opcional. Emitir sonido como finalizacion
     brick.play_tone_and_wait(659, 500)
 
 
 if __name__=='__main__':
-    brick= connect('00:16:53:09:46:3B')
-    run(brick)
+    #robot= Robot(nxt.locator.find_one_brick())
+    robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
+    robot.mision()
