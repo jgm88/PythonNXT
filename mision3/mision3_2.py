@@ -11,7 +11,7 @@ class Robot:
     def __init__(self, brick):
 
         self.brick_= brick
-        self.separationBetweenWheels_= 8
+        self.separationBetweenWheels_= 14
         self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
         self.cuenta_= ((encoder_*math.pi)/wheelDiameter_)
         self.sensorLight_= Light(brick, PORT_3)
