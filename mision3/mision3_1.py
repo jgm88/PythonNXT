@@ -27,7 +27,7 @@ def run(brick):
     bPadre = Motor(brick, PORT_B)
     bHijo = Motor(brick, PORT_C)
     sync = SynchronizedMotors(bPadre, bHijo, 0) 
-    sync.run(100)
+    sync.run(80)
 
     # 3.Avanzar hasta encontrar linea negra
     while sensor.get_lightness() < 500:
