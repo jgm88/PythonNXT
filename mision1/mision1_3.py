@@ -14,8 +14,8 @@ def connect(idmac):
 
 class mission1_3:
 	def __init__(self):
-		# vector de estados, [stop,mov+,mov-] para saber en que direccion acelerar
-		self.vState = [False, False, False]
+		# vector de estados, [mov+,mov-] para saber en que direccion acelerar
+		self.vState = [False, False]
 		self.power = 60
 		self.dadMotor = None	
 		self.sonMotor = None
@@ -24,28 +24,27 @@ class mission1_3:
 
 	def move(self, direction):
 
-		# vState[0] si se esta moviendo o no
-		# vState[1] mov+ vState[2] mov-	
+		# vState[0] mov+ vState[1] mov-	
+
+		# Yendo hacia atras y quiero seguir hacia atras
+		if(direction == -1 and self.vState[1]):
+			return		
+		# Yendo hacia adelante y quiero seguir hacia delante
+		elif(direction == 1 and self.vState[0]):
+			return
+
+		if(direction == 1):
+			self.vState[0] = True
+			self.vState[1] = False
+		else:
+			self.vState[0] = False
+			self.vState[1] = True
 
 		# Yendo hacia atras y quiero ir hacia delante
-		if(direction == 1 and self.vState[2]):
+		if(direction == 1 and self.vState[1]):
 			direction = -1
-			self.vState[1] = True
-			self.vState[2] = False
-		# Yendo hacia atras y quiero seguir hacia atras
-		elif(direction == -1 and self.vState[2]):
-			direction = 1
-		else:		
-			if(direction == 1):
-				self.vState[1] = True
-				self.vState[2] = False
-			else:
-				self.vState[1] = False
-				self.vState[2] = True
 
 		self.power *= direction
-		
-		self.vState[0] = True
 		
 		self.syncMotor.brake()
 		self.syncMotor.run(self.power)
@@ -53,22 +52,29 @@ class mission1_3:
 	# Dependiendo de la direccion, acelera o decelera
 	def speed(self, direction):
 
-		# si se esta moviendo y esta en los limites de power
-		if(self.vState[0] and self.power < 120 and self.power > -120):
-			if(self.vState[1]):
-				if(not(direction < 0 and self.power <= 0)):
-					self.power = self.power + 10 * direction
-			elif(self.vState[2]):
-				if(not(direction > 0 and self.power >= 0)):
-					self.power = self.power - 10 * direction
-			self.syncMotor.run(self.power)
+		if(self.vState[0]):
+			if(self.power < 120 and self.power > 0):
+				self.power = self.power + 10 * direction
+		elif(self.vState[1]):
+			if(self.power < 0 and self.power > -120):
+				self.power = self.power - 10 * direction
+		else:
+			return
+		self.syncMotor.run(self.power)
 
 	def turn(self, direction):
 
-		self.vState[0] = self.vState[1] = self.vState[2] = False
-		self.syncMotor.brake()
-		self.dadMotor.turn(direction * 100, 180)
-		self.sonMotor.turn(direction * -100, 180)
+		# self.vState[0] = self.vState[1] = False
+		# self.syncMotor.brake()
+		# self.dadMotor.turn(direction * 100, 180)
+		# self.sonMotor.turn(direction * -100, 180)
+
+		if(self.vState[1]):
+			self.dadMotor.turn(direction * -100, 180)
+			self.sonMotor.turn(direction * 100, 180)
+		else:
+			self.dadMotor.turn(direction * 100, 180)
+			self.sonMotor.turn(direction * -100, 180)	
 
 	def run(self, brick):
 		
@@ -116,12 +122,11 @@ class mission1_3:
 
 				# Parar o activar motor
 				elif(key == ' '):
-					if(self.vState[0]):
-						self.vState[0] = self.vState[1] = self.vState[2] = False
+					if(self.vState[0] or self.vState[1]):
+						self.vState[0] = self.vState[1] = False
 						self.syncMotor.brake()
 					else:
-						self.vState[0] = self.vState[1] = True
-						self.vState[2] = False
+						self.vState[0] = True
 						self.power = 60
 						self.syncMotor.run(self.power)	
 
