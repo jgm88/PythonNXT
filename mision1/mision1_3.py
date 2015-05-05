@@ -5,14 +5,15 @@ from nxt.motor import *
 import time
 import msvcrt
 
+# brick = connect('00:16:53:09:46:3B')
 
-def connect(idmac):
+def connect(mode, mac):
+    if(mode=="Usb"):
+        return nxt.locator.find_one_brick()
+    else:
+        return nxt.bluesock.BlueSock(mac).connect()
 
-    m = nxt.locator.Method(False, True, False, False)
-    b = nxt.bluesock.BlueSock(idmac).connect()
-    return b
-
-class mission1_3:
+class robot:
 	def __init__(self):
 		# vector de estados, [mov+,mov-] para saber en que direccion acelerar
 		self.vState = [False, False]
@@ -20,31 +21,30 @@ class mission1_3:
 		self.dadMotor = None	
 		self.sonMotor = None
 		self.syncMotor = None
-		self.arm = None
+		self.arm = None	
 
 	def move(self, direction):
 
 		# vState[0] mov+ vState[1] mov-	
 
-		# Yendo hacia atras y quiero seguir hacia atras
-		if(direction == -1 and self.vState[1]):
-			return		
-		# Yendo hacia adelante y quiero seguir hacia delante
-		elif(direction == 1 and self.vState[0]):
-			return
-
 		if(direction == 1):
+			if(not self.vState[0] and not self.vState[1]):
+				self.power = 60
+			if(self.vState[1]):
+				self.power *= -1		
+
 			self.vState[0] = True
 			self.vState[1] = False
-		else:
+
+		if(direction == -1):
+			if(not self.vState[0] and not self.vState[1]):
+				self.power = -60
+			if(self.vState[0]):	
+				self.power *= direction
+
+
 			self.vState[0] = False
 			self.vState[1] = True
-
-		# Yendo hacia atras y quiero ir hacia delante
-		if(direction == 1 and self.vState[1]):
-			direction = -1
-
-		self.power *= direction
 		
 		self.syncMotor.brake()
 		self.syncMotor.run(self.power)
@@ -54,20 +54,16 @@ class mission1_3:
 
 		if(self.vState[0]):
 			if(self.power < 120 and self.power > 0):
-				self.power = self.power + 10 * direction
+				self.power = self.power + 5 * direction
 		elif(self.vState[1]):
 			if(self.power < 0 and self.power > -120):
-				self.power = self.power - 10 * direction
+				self.power = self.power - 5 * direction
 		else:
 			return
+		self.syncMotor.brake()
 		self.syncMotor.run(self.power)
 
 	def turn(self, direction):
-
-		# self.vState[0] = self.vState[1] = False
-		# self.syncMotor.brake()
-		# self.dadMotor.turn(direction * 100, 180)
-		# self.sonMotor.turn(direction * -100, 180)
 
 		if(self.vState[1]):
 			self.dadMotor.turn(direction * -100, 180)
@@ -76,7 +72,7 @@ class mission1_3:
 			self.dadMotor.turn(direction * 100, 180)
 			self.sonMotor.turn(direction * -100, 180)	
 
-	def run(self, brick):
+	def mision1_3(self, brick):
 		
 		self.dadMotor = Motor(brick, PORT_B)
 		self.sonMotor = Motor(brick, PORT_C)
@@ -111,14 +107,19 @@ class mission1_3:
 					self.turn(-1)
 
 				# Brazo arriba
-				elif(key == 'q'):				
-					self.arm.reset_position(True)
-					self.arm.turn(20, 50)
+				elif(key == 'q'):									
+					
+					try:
+						self.arm.turn(40, 50)
+					except ValueError:
+						print "seke"
 
 				# Brazo abajo
 				elif(key == 'e'):	
-					self.arm.reset_position(True)		
-					self.arm.turn(-20, 50)
+					try:						
+						self.arm.turn(-40, 50)
+					except ValueError:
+						print "seke"
 
 				# Parar o activar motor
 				elif(key == ' '):
@@ -143,8 +144,4 @@ class mission1_3:
 				elif(key == '-'):
 					self.speed(-1)
 	    	
-if __name__=='__main__':    
-	
-	brick = connect('00:16:53:09:46:3B')
-	mission = mission1_3()
-	mission.run(brick)
+
