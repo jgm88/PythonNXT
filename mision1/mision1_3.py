@@ -4,6 +4,13 @@ import nxt.bluesock
 from nxt.motor import *
 import time
 import msvcrt
+import math
+
+def connect(mode, mac):
+    if(mode=="Usb"):
+        return nxt.locator.find_one_brick()
+    else:
+        return nxt.bluesock.BlueSock(mac).connect()
 
 # brick = connect('00:16:53:09:46:3B')
 
@@ -13,7 +20,7 @@ class Robot:
 		# vector de estados, [mov+,mov-] para saber en que direccion acelerar
 		self.vState = [False, False]
 		self.power = 60
-		self.separationBetweenWheels_= 13
+		self.separationBetweenWheels_ = 13
 		self.syncMotor = SynchronizedMotors(Motor(brick, PORT_B),  Motor(brick, PORT_C), 0)
 		self.arm =  Motor(brick, PORT_A)	
 		
@@ -22,8 +29,8 @@ class Robot:
         # 1. Calculamos las cuentas que tendra que pasar para girar hacia un stolado.
         # Si suponemos que un giro sobre si mismo es de de radio separationBewteenWheels, un giro solo ocupara una
         # cuarta parte del perimetro de la circunferencia.
-        turn_perimeter = (math.pi * 2.0 * self.separationBetweenWheels_) / 4.0
-        self.cuentasGiro_ = turn_perimeter / self.cuenta_
+		self.turn_perimeter = (math.pi * 2.0 * self.separationBetweenWheels_) / 4.0
+		self.cuentasGiro_ = self.turn_perimeter / self.cuenta_
 
 
 	def move(self, direction):
@@ -55,7 +62,7 @@ class Robot:
 	# Dependiendo de la direccion, acelera o decelera
 	def speed(self, direction):
 
-		if(self.vState[0]):
+		if(self.vState[0]):	
 			if(self.power < 120 and self.power > 0):
 				self.power = self.power + 5 * direction
 		elif(self.vState[1]):
@@ -73,70 +80,74 @@ class Robot:
 		else:
 			self.syncMotor.follower.weak_turn(self.power, self.cuentasGiro_)
 
-	def mision(self):
+	def stop(self):
+		if(self.vState[0] or self.vState[1]):
+			self.vState[0] = self.vState[1] = False
+			self.syncMotor.brake()
+		else:
+			self.vState[0] = True
+			self.power = 60
+			self.syncMotor.run(self.power)
 
-	# funcion motor.idle, para pero tambien desincroniza
-		print "*Ordenes para el robot:"
-		print "	W o S 	avanzar o retroceder"
-		print "	A o D 	girar"
-		print "	Q o E 	mover el brazo"
-		print "	Espacio 	parar"
-		print "	+ o - 	acelerar"
-		print "	P para salir del programa"
+	# def mision(self, event):
 
-		while True:
-			if msvcrt.kbhit():
-				key = msvcrt.getch()
+	# # funcion motor.idle, para pero tambien desincroniza
+	# 	print "*Ordenes para el robot:"
+	# 	print "	W o S 	avanzar o retroceder"
+	# 	print "	A o D 	girar"
+	# 	print "	Q o E 	mover el brazo"
+	# 	print "	Espacio 	parar"
+	# 	print "	+ o - 	acelerar"
+	# 	print "	P para salir del programa"
 
-				# Movimiento 
-				if(key == 'w'):
-					self.move(1)
-				elif(key == 's'):
-					self.move(-1)
+	# 	while True:
+	# 		if msvcrt.kbhit():
+	# 			key = msvcrt.getch()
 
-				# Girar a la derecha
-				elif(key == 'a'):
-					self.turn(1)
-				# Girar a la izquierda
-				elif(key == 'd'):
-					self.turn(-1)
+	# 			# Movimiento 
+	# 			if(key == 'w'):
+	# 				self.move(1)
+	# 			elif(key == 's'):
+	# 				self.move(-1)
 
-				# Brazo arriba
-				elif(key == 'q'):									
+	# 			# Girar a la derecha
+	# 			elif(key == 'a'):
+	# 				self.turn(1)
+	# 			# Girar a la izquierda
+	# 			elif(key == 'd'):
+	# 				self.turn(-1)
+
+	# 			# Brazo arriba
+	# 			elif(key == 'q'):									
 					
-					try:
-						self.arm.turn(40, 50)
-					except ValueError:
-						print "seke"
+	# 				try:
+	# 					self.arm.turn(40, 50)
+	# 				except ValueError:
+	# 					print "seke"
 
-				# Brazo abajo
-				elif(key == 'e'):	
-					try:						
-						self.arm.turn(-40, 50)
-					except ValueError:
-						print "seke"
+	# 			# Brazo abajo
+	# 			elif(key == 'e'):	
+	# 				try:						
+	# 					self.arm.turn(-40, 50)
+	# 				except ValueError:
+	# 					print "seke"
 
-				# Parar o activar motor
-				elif(key == ' '):
-					if(self.vState[0] or self.vState[1]):
-						self.vState[0] = self.vState[1] = False
-						self.syncMotor.brake()
-					else:
-						self.vState[0] = True
-						self.power = 60
-						self.syncMotor.run(self.power)	
+	# 			# Parar o activar motor
+	# 			elif(key == ' '):
+	# 				self.stop()
 
-				#Cerrar programa
-				elif(key == 'p'):
-					self.syncMotor.brake()
-					self.arm.brake()
-					break
 
-				# Acelerar
-				elif(key == '+'):
-					self.speed(1)
+	# 			#Cerrar programa
+	# 			elif(key == 'p'):
+	# 				self.syncMotor.brake()
+	# 				self.arm.brake()
+	# 				break
 
-				elif(key == '-'):
-					self.speed(-1)
+	# 			# Acelerar
+	# 			elif(key == '+'):
+	# 				self.speed(1)
+
+	# 			elif(key == '-'):
+	# 				self.speed(-1)
 	    	
 

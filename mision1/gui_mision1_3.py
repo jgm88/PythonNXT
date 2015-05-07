@@ -18,7 +18,10 @@ class Application:
 
 		self.var= StringVar()
 		self.mac= StringVar()
+		self.connect= IntVar()
+		self.mac.set("00:16:53:09:46:3B")
 		self.var.set("Bluetooth")
+		self.connect.set(0)
 		self.panel.add(Radiobutton(root, text="Usb", variable=self.var, value="Usb"))
 		self.panel.add(Radiobutton(root, text="Bluetooth", variable=self.var, value="Bluetooth"))
 		self.panel.add(Label(self.root, justify=LEFT, text="Mac address", font="Arial 12 bold"))
@@ -35,17 +38,67 @@ class Application:
 		self.image= ImageTk.PhotoImage(Image.open('gui_mision13_img.png'))
 		self.canvas.create_image(0,0,anchor=NW, image=self.image)
 		self.canvas.pack()
+		
+		
+	def callRobot(self, event):
+		print "HELLO GUI"
+		if(event.keysym == 'w'):
+			self.robot.move(1)
+		elif(event.keysym == 's'):
+			self.robot.move(-1)
 
+		# Girar a la derecha
+		elif(event.keysym == 'a'):
+			self.robot.turn(1)
+
+		# Girar a la izquierda
+		elif(event.keysym == 'd'):
+			self.robot.turn(-1)
+
+		# Brazo arriba
+		elif(event.keysym == 'q'):									
+			self.robot.arm.turn(40, 50)
+
+		# Brazo abajo
+		elif(event.keysym == 'e'):							
+			self.robot.arm.turn(-40, 50)
+
+		# Parar o activar motor
+		elif(event.keysym == ' '):
+			self.robot.stop()
+
+		#Cerrar programa
+		elif(event.keysym == 'p'):
+			self.robot.syncMotor.brake()
+			self.robot.arm.brake()			
+
+		# Acelerar
+		elif(event.keysym == '+'):
+			self.robot.speed(1)
+
+		elif(event.keysym == '-'):
+			self.robot.speed(-1)
+	
 	def mision(self):
+		
 		if self.var.get()=="Bluetooth" and self.mac.get()=="":
 			return
 		
-		self.robot= Robot(connect(self.var.get(), self.mac.get()))
-		self.robot.mision(self.radio.get())
+		try :
+			if self.connect.get()==0:
+				self.robot= Robot(connect(self.var.get(), self.mac.get()))
+				self.robot.mision()
+				self.connect.set(1)
+		except ValueError:
+			print "Cannot connect to robot"
+
+
 
 
 
 if __name__=='__main__':
 	root= Tk()
-	Application(root)
+	app = Application(root)
+	app.mision()
+	root.bind_all("<Key>", app.callRobot)
 	root.mainloop()
