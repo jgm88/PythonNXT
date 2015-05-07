@@ -7,21 +7,24 @@ import msvcrt
 
 # brick = connect('00:16:53:09:46:3B')
 
-def connect(mode, mac):
-    if(mode=="Usb"):
-        return nxt.locator.find_one_brick()
-    else:
-        return nxt.bluesock.BlueSock(mac).connect()
-
-class robot:
-	def __init__(self):
+class Robot:
+	
+	def __init__(self, brick, tam_encoder=360, wheel_diameter=5.6):
 		# vector de estados, [mov+,mov-] para saber en que direccion acelerar
 		self.vState = [False, False]
 		self.power = 60
-		self.dadMotor = None	
-		self.sonMotor = None
-		self.syncMotor = None
-		self.arm = None	
+		self.separationBetweenWheels_= 13
+		self.syncMotor = SynchronizedMotors(Motor(brick, PORT_B),  Motor(brick, PORT_C), 0)
+		self.arm =  Motor(brick, PORT_A)	
+		
+		self.cuenta_= ((wheel_diameter*math.pi)/tam_encoder)
+
+        # 1. Calculamos las cuentas que tendra que pasar para girar hacia un stolado.
+        # Si suponemos que un giro sobre si mismo es de de radio separationBewteenWheels, un giro solo ocupara una
+        # cuarta parte del perimetro de la circunferencia.
+        turn_perimeter = (math.pi * 2.0 * self.separationBetweenWheels_) / 4.0
+        self.cuentasGiro_ = turn_perimeter / self.cuenta_
+
 
 	def move(self, direction):
 
@@ -66,19 +69,11 @@ class robot:
 	def turn(self, direction):
 
 		if(self.vState[1]):
-			self.dadMotor.turn(direction * -100, 180)
-			self.sonMotor.turn(direction * 100, 180)
+			self.syncMotor.leader.weak_turn(self.power, self.cuentasGiro_)
 		else:
-			self.dadMotor.turn(direction * 100, 180)
-			self.sonMotor.turn(direction * -100, 180)	
+			self.syncMotor.follower.weak_turn(self.power, self.cuentasGiro_)
 
-	def mision1_3(self, brick):
-		
-		self.dadMotor = Motor(brick, PORT_B)
-		self.sonMotor = Motor(brick, PORT_C)
-		self.syncMotor = SynchronizedMotors(self.dadMotor, self.sonMotor, 0)	
-
-		self.arm = Motor(brick, PORT_A)	
+	def mision(self):
 
 	# funcion motor.idle, para pero tambien desincroniza
 		print "*Ordenes para el robot:"

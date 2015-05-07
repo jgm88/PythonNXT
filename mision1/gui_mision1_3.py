@@ -2,6 +2,7 @@
 
 from Tkinter import *
 from PIL import Image, ImageTk
+from mision1_3 import *
 
 class Application:
 
@@ -38,6 +39,9 @@ class Application:
 	def mision(self):
 		if self.var.get()=="Bluetooth" and self.mac.get()=="":
 			return
+		
+		self.robot= Robot(connect(self.var.get(), self.mac.get()))
+		self.robot.mision(self.radio.get())
 
 
 
