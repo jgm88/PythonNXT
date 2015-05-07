@@ -18,10 +18,8 @@ class Application:
 
 		self.var= StringVar()
 		self.mac= StringVar()
-		self.connect= IntVar()
 		self.mac.set("00:16:53:09:46:3B")
 		self.var.set("Bluetooth")
-		self.connect.set(0)
 		self.panel.add(Radiobutton(root, text="Usb", variable=self.var, value="Usb"))
 		self.panel.add(Radiobutton(root, text="Bluetooth", variable=self.var, value="Bluetooth"))
 		self.panel.add(Label(self.root, justify=LEFT, text="Mac address", font="Arial 12 bold"))
@@ -38,10 +36,8 @@ class Application:
 		self.image= ImageTk.PhotoImage(Image.open('gui_mision13_img.png'))
 		self.canvas.create_image(0,0,anchor=NW, image=self.image)
 		self.canvas.pack()
-		
-		
 	def callRobot(self, event):
-		print "HELLO GUI"
+		
 		if(event.keysym == 'w'):
 			self.robot.move(1)
 		elif(event.keysym == 's'):
@@ -64,37 +60,27 @@ class Application:
 			self.robot.arm.turn(-40, 50)
 
 		# Parar o activar motor
-		elif(event.keysym == ' '):
+		elif(event.keysym == "space"):
 			self.robot.stop()
 
 		#Cerrar programa
 		elif(event.keysym == 'p'):
 			self.robot.syncMotor.brake()
-			self.robot.arm.brake()			
+			self.robot.arm.brake()	
+			self.root.destroy()		
 
 		# Acelerar
-		elif(event.keysym == '+'):
+		elif(event.keysym == 'plus'):
 			self.robot.speed(1)
 
-		elif(event.keysym == '-'):
+		elif(event.keysym == 'minus'):
 			self.robot.speed(-1)
-	
 	def mision(self):
-		
 		if self.var.get()=="Bluetooth" and self.mac.get()=="":
 			return
 		
-		try :
-			if self.connect.get()==0:
-				self.robot= Robot(connect(self.var.get(), self.mac.get()))
-				self.robot.mision()
-				self.connect.set(1)
-		except ValueError:
-			print "Cannot connect to robot"
-
-
-
-
+		self.robot= Robot(connect(self.var.get(), self.mac.get()))		
+		# self.robot.mision()
 
 if __name__=='__main__':
 	root= Tk()

@@ -75,10 +75,10 @@ class Robot:
 
 	def turn(self, direction):
 
-		if(self.vState[1]):
-			self.syncMotor.leader.weak_turn(self.power, self.cuentasGiro_)
+		if(direction == 1):
+			self.syncMotor.leader.weak_turn(80, self.cuentasGiro_)
 		else:
-			self.syncMotor.follower.weak_turn(self.power, self.cuentasGiro_)
+			self.syncMotor.follower.weak_turn(80, self.cuentasGiro_)
 
 	def stop(self):
 		if(self.vState[0] or self.vState[1]):
@@ -87,67 +87,4 @@ class Robot:
 		else:
 			self.vState[0] = True
 			self.power = 60
-			self.syncMotor.run(self.power)
-
-	# def mision(self, event):
-
-	# # funcion motor.idle, para pero tambien desincroniza
-	# 	print "*Ordenes para el robot:"
-	# 	print "	W o S 	avanzar o retroceder"
-	# 	print "	A o D 	girar"
-	# 	print "	Q o E 	mover el brazo"
-	# 	print "	Espacio 	parar"
-	# 	print "	+ o - 	acelerar"
-	# 	print "	P para salir del programa"
-
-	# 	while True:
-	# 		if msvcrt.kbhit():
-	# 			key = msvcrt.getch()
-
-	# 			# Movimiento 
-	# 			if(key == 'w'):
-	# 				self.move(1)
-	# 			elif(key == 's'):
-	# 				self.move(-1)
-
-	# 			# Girar a la derecha
-	# 			elif(key == 'a'):
-	# 				self.turn(1)
-	# 			# Girar a la izquierda
-	# 			elif(key == 'd'):
-	# 				self.turn(-1)
-
-	# 			# Brazo arriba
-	# 			elif(key == 'q'):									
-					
-	# 				try:
-	# 					self.arm.turn(40, 50)
-	# 				except ValueError:
-	# 					print "seke"
-
-	# 			# Brazo abajo
-	# 			elif(key == 'e'):	
-	# 				try:						
-	# 					self.arm.turn(-40, 50)
-	# 				except ValueError:
-	# 					print "seke"
-
-	# 			# Parar o activar motor
-	# 			elif(key == ' '):
-	# 				self.stop()
-
-
-	# 			#Cerrar programa
-	# 			elif(key == 'p'):
-	# 				self.syncMotor.brake()
-	# 				self.arm.brake()
-	# 				break
-
-	# 			# Acelerar
-	# 			elif(key == '+'):
-	# 				self.speed(1)
-
-	# 			elif(key == '-'):
-	# 				self.speed(-1)
-	    	
-
+			self.syncMotor.run(self.power)	
