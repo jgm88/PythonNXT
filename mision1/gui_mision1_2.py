@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from Tkinter import *
-import mision1_2
+from mision1_2 import *
 
 class Application:
 
@@ -15,7 +15,9 @@ class Application:
 		self.var= StringVar()
 		self.mac= StringVar()
 		self.radio= DoubleVar()
+		self.connect= IntVar()
 		self.var.set("Usb")
+		self.connect.set(0)
 		self.panel.add(Radiobutton(root, text="Usb", variable=self.var, value="Usb"))
 		self.panel.add(Radiobutton(root, text="Bluetooth", variable=self.var, value="Bluetooth"))
 		
@@ -35,8 +37,14 @@ class Application:
 		if self.radio.get()==0.0:
 			return
 
-		robot= Robot(connect(self.var.get(), self.mac.get()))
-		robot.mision(self.radio.get())
+		try :
+			if self.connect.get()==0:
+				self.robot= Robot(connect(self.var.get(), self.mac.get()))
+				self.connect.set(1)
+			else:
+				self.robot.mision(self.radio.get())
+		except ValueError:
+			print "Cannot connect to robot"
 
 if __name__=='__main__':
 	root= Tk()
