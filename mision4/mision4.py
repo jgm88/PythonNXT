@@ -29,6 +29,7 @@ class Robot:
         minus= 255
         tm= time.time()
 
+        #1. Vuelta para detectar el objeto mas cercano
         while time.time() - tm <=5.0:
             x= self.sensorUltraSound_.get_distance()
             if(x<minus):
@@ -36,36 +37,44 @@ class Robot:
         print "vuelta dada"
         print "Min distance: ", minus
         self.syncMotor_.brake()
-        
+
         self.syncMotor_.leader.run(65)
         self.syncMotor_.follower.run(-65)
-       
-        while self.sensorUltraSound_.get_distance()>=(minus+5):
+
+        #2. Vuelta y apuntar al objeto
+        while self.sensorUltraSound_.get_distance() >= (minus+5):
+            # print "estoy buscando"
             # print "sensor:", self.sensorUltraSound_.get_distance()
             pass;
         print "Stop"
         self.syncMotor_.brake()
+        time.sleep(1)
 
         print "Arranco motores"
         self.syncMotor_.run(70)
+        time.sleep(2)
         # self.syncMotor_.leader.run(65)
         # self.syncMotor_.follower.run(65)
 
         # self.syncMotor_.run(65)
-        while self.sensorUltraSound_.get_distance()<=18:
+        # distancia = self.sensorUltraSound_.get_distance()
+        # print "Distancia: ", distancia
+        while self.sensorUltraSound_.get_distance() <= 30: #Medida del brazo
             print "ir al objeto"
             pass;
+
         self.syncMotor_.brake()
 
-
+        print "Toco objeto con el Brazo"
+        self.arm_.turn(40,50)
+        self.arm_.turn(-40,50)
 
         # 4. Opcional. Emitir sonido como finalizacion
         self.brick_.play_tone_and_wait(659, 500)
+        print "FIN"
 
 
 if __name__=='__main__':
     robot= Robot(nxt.locator.find_one_brick())
     #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
     robot.mision()
-
-
