@@ -34,20 +34,20 @@ class Robot:
             pass
         print "Hueco Detectado"
         tachos = self.syncMotor_.leader.get_tacho().tacho_count
-        print "Tacho Inicial",tachos
-        puedoImprimir = True
-        print "cuenta", self.cuenta_
-        print "CT", self.cuentasTam_
-        while self.syncMotor_.leader.get_tacho().tacho_count < tachos + self.cuentasTam_:
-            #  and self.sensorUltraSound_.get_distance() > anchoCoche
-        # while self.sensorUltraSound_.get_distance() > anchoCoche: #medida del robot
-            if puedoImprimir:
-                print "Hueco Vacio"
-                puedoImprimir = False
-                pass
-            pass
-        print "Tacho Final",self.syncMotor_.leader.get_tacho().tacho_count
+        puedoImprimir = False
 
+        while self.sensorUltraSound_.get_distance() > largoCoche:
+
+            if self.syncMotor_.leader.get_tacho().tacho_count > tachos + self.cuentasTam_:
+                print "++++++++++++++++Hueco encontrado"
+                puedoImprimir= True
+                break
+                # if puedoImprimir:
+                #     print "Hueco Vacio"
+                #     puedoImprimir = False
+
+        print "Aparcarmiento: ", puedoImprimir
+       
         self.syncMotor_.brake()
         time.sleep(1)
 
