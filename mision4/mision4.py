@@ -59,7 +59,7 @@ class Robot:
         # self.syncMotor_.run(65)
         # distancia = self.sensorUltraSound_.get_distance()
         # print "Distancia: ", distancia
-        while self.sensorUltraSound_.get_distance() <= 30: #Medida del brazo
+        while self.sensorUltraSound_.get_distance() <= 20: #Medida del brazo
             print "ir al objeto"
             pass;
 
