@@ -20,7 +20,7 @@ class Robot:
         self.cuenta_= ((wheel_diameter*math.pi)/tam_encoder)
         turn_perimeter = (math.pi * 2.0 * self.separationBetweenWheels_) / 4.0
         self.cuentasGiro_ = turn_perimeter / self.cuenta_
-        self.cuentasTam_ = 30.0 / self.cuenta_
+        self.cuentasTam_ = 22.0 / self.cuenta_
 
     def mision(self):
 
@@ -28,7 +28,7 @@ class Robot:
         print "Buscanco Hueco"
         self.syncMotor_.run(70)
         anchoCoche = 25 #medida coche
-        largoCoche = 30
+        largoCoche = 22
         while self.sensorUltraSound_.get_distance() < anchoCoche: #medida del robot
             # print self.sensorUltraSound_.get_distance()
             pass
@@ -39,12 +39,8 @@ class Robot:
         while self.sensorUltraSound_.get_distance() > largoCoche:
 
             if self.syncMotor_.leader.get_tacho().tacho_count > tachos + self.cuentasTam_:
-                print "++++++++++++++++Hueco encontrado"
                 puedoAparcar= True
                 break
-                # if puedoAparcar:
-                #     print "Hueco Vacio"
-                #     puedoAparcar = False
 
         print "Aparcarmiento: ", puedoAparcar
 
@@ -52,10 +48,24 @@ class Robot:
         time.sleep(1)
         if puedoAparcar:
             print "Tengo k ir hacia Atras"
+           
+            #self.syncMotor_.turn(-70, self.cuentasTam_/4)
         print "Fin"
+
+    def aparcar(self):
+        self.syncMotor_.follower.weak_turn(60, self.cuentasGiro_/4)
+        self.syncMotor_.leader.weak_turn(-60, self.cuentasGiro_/4)
+        time.sleep(1.5)
+        self.syncMotor_.brake()
+        self.syncMotor_.turn(-60, 2*(self.cuentasTam_/3))
+        time.sleep(1.5)
+        self.syncMotor_.brake()
+        self.syncMotor_.follower.weak_turn(-60, self.cuentasGiro_/4)
+        self.syncMotor_.leader.weak_turn(60, self.cuentasGiro_/4)
 
 
 if __name__=='__main__':
     robot= Robot(nxt.locator.find_one_brick())
     #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
-    robot.mision()
+    #robot.mision()
+    robot.aparcar()
