@@ -11,7 +11,7 @@ class Robot:
 
     def __init__(self, brick, tam_encoder=360, wheel_diameter=5.6):
 
-        self.anchoCoche = 25 #medida coche
+        self.anchoCoche = 20 #medida coche
         self.largoCoche = 22
         self.brick_= brick
         self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
@@ -22,7 +22,9 @@ class Robot:
         self.cuenta_= ((wheel_diameter*math.pi)/tam_encoder)
         turn_perimeter = (math.pi * 2.0 * self.separationBetweenWheels_) / 4.0
         self.cuentasGiro_ = turn_perimeter / self.cuenta_
-        self.cuentasTam_ = 22.0 / self.cuenta_
+        self.cuentasTamLargo_ = self.largoCoche / self.cuenta_
+
+        self.sensorUltraSound_.command(0x02) 
 
     def mision(self):
 
@@ -34,12 +36,13 @@ class Robot:
             print self.sensorUltraSound_.get_distance()
             pass
         print "Hueco Detectado"
-        tachos = self.syncMotor_.leader.get_tacho().tacho_count + self.cuentasTam_
+        #recorrido total + largo/cuentas
+        sumTachoLargo = self.syncMotor_.leader.get_tacho().tacho_count + self.cuentasTamLargo_
         puedoAparcar = False
 
-        while self.sensorUltraSound_.get_distance() > self.largoCoche:
-
-            if self.syncMotor_.leader.get_tacho().tacho_count > tachos:
+        while self.sensorUltraSound_.get_distance() > self.anchoCoche:
+            
+            if self.syncMotor_.leader.get_tacho().tacho_count > sumTachoLargo:
                 puedoAparcar= True
                 break
 
@@ -47,28 +50,32 @@ class Robot:
 
         self.syncMotor_.brake()
         time.sleep(1)
+
         if puedoAparcar:
-            print "Tengo k ir hacia Atras"
-            self.syncMotor_.turn(-60, self.cuentasTam_/2)
+            print "Tengo que ir hacia Atras"
+            print "Marcha atras 1"
+            self.syncMotor_.turn(-60, self.cuentasTamLargo_/2)
             time.sleep(1)
             self.syncMotor_.brake()
+            print "Giro"
             self.syncMotor_.follower.weak_turn(60, self.cuentasGiro_/4)
             self.syncMotor_.leader.weak_turn(-60, self.cuentasGiro_/4)
             time.sleep(1.5)
             self.syncMotor_.brake()
-            self.syncMotor_.turn(-60, 2*(self.cuentasTam_/3))
+            print "Marcha atras 2"
+            self.syncMotor_.turn(-60, 3*(self.cuentasTamLargo_/4))
             time.sleep(1.5)
             self.syncMotor_.brake()
             self.syncMotor_.follower.weak_turn(-60, self.cuentasGiro_/4)
             self.syncMotor_.leader.weak_turn(60, self.cuentasGiro_/4)
             time.sleep(0.5)
             self.brick_.play_tone_and_wait(659, 500)
-            #self.syncMotor_.turn(-70, self.cuentasTam_/4)
+            #self.syncMotor_.turn(-70, self.cuentasTamLargo_/4)
         
         
         print "Fin"
 
 if __name__=='__main__':
-    robot= Robot(nxt.locator.find_one_brick())
-    #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
+    # robot= Robot(nxt.locator.find_one_brick())
+    robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
     robot.mision()
