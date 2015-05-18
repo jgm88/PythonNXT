@@ -11,6 +11,8 @@ class Robot:
 
     def __init__(self, brick, tam_encoder=360, wheel_diameter=5.6):
 
+        self.anchoCoche = 25 #medida coche
+        self.largoCoche = 22
         self.brick_= brick
         self.syncMotor_ = SynchronizedMotors(Motor(self.brick_, PORT_B), Motor(self.brick_, PORT_C), 0)
         self.arm_ = Motor(self.brick_, PORT_A)
@@ -27,16 +29,15 @@ class Robot:
         #1. Ir en linea recta hasta encontrar un objeto
         print "Buscanco Hueco"
         self.syncMotor_.run(70)
-        anchoCoche = 25 #medida coche
-        largoCoche = 22
-        while self.sensorUltraSound_.get_distance() < anchoCoche: #medida del robot
+
+        while self.sensorUltraSound_.get_distance() < self.anchoCoche: #medida del robot
             print self.sensorUltraSound_.get_distance()
             pass
         print "Hueco Detectado"
         tachos = self.syncMotor_.leader.get_tacho().tacho_count + self.cuentasTam_
         puedoAparcar = False
 
-        while self.sensorUltraSound_.get_distance() > largoCoche:
+        while self.sensorUltraSound_.get_distance() > self.largoCoche:
 
             if self.syncMotor_.leader.get_tacho().tacho_count > tachos:
                 puedoAparcar= True
