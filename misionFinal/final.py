@@ -30,15 +30,15 @@ class Robot:
         anchoCoche = 25 #medida coche
         largoCoche = 22
         while self.sensorUltraSound_.get_distance() < anchoCoche: #medida del robot
-            # print self.sensorUltraSound_.get_distance()
+            print self.sensorUltraSound_.get_distance()
             pass
         print "Hueco Detectado"
-        tachos = self.syncMotor_.leader.get_tacho().tacho_count
+        tachos = self.syncMotor_.leader.get_tacho().tacho_count + self.cuentasTam_
         puedoAparcar = False
 
         while self.sensorUltraSound_.get_distance() > largoCoche:
 
-            if self.syncMotor_.leader.get_tacho().tacho_count > tachos + self.cuentasTam_:
+            if self.syncMotor_.leader.get_tacho().tacho_count > tachos:
                 puedoAparcar= True
                 break
 
@@ -48,24 +48,26 @@ class Robot:
         time.sleep(1)
         if puedoAparcar:
             print "Tengo k ir hacia Atras"
-           
+            self.syncMotor_.turn(-60, self.cuentasTam_/2)
+            time.sleep(1)
+            self.syncMotor_.brake()
+            self.syncMotor_.follower.weak_turn(60, self.cuentasGiro_/4)
+            self.syncMotor_.leader.weak_turn(-60, self.cuentasGiro_/4)
+            time.sleep(1.5)
+            self.syncMotor_.brake()
+            self.syncMotor_.turn(-60, 2*(self.cuentasTam_/3))
+            time.sleep(1.5)
+            self.syncMotor_.brake()
+            self.syncMotor_.follower.weak_turn(-60, self.cuentasGiro_/4)
+            self.syncMotor_.leader.weak_turn(60, self.cuentasGiro_/4)
+            time.sleep(0.5)
+            self.brick_.play_tone_and_wait(659, 500)
             #self.syncMotor_.turn(-70, self.cuentasTam_/4)
+        
+        
         print "Fin"
-
-    def aparcar(self):
-        self.syncMotor_.follower.weak_turn(60, self.cuentasGiro_/4)
-        self.syncMotor_.leader.weak_turn(-60, self.cuentasGiro_/4)
-        time.sleep(1.5)
-        self.syncMotor_.brake()
-        self.syncMotor_.turn(-60, 2*(self.cuentasTam_/3))
-        time.sleep(1.5)
-        self.syncMotor_.brake()
-        self.syncMotor_.follower.weak_turn(-60, self.cuentasGiro_/4)
-        self.syncMotor_.leader.weak_turn(60, self.cuentasGiro_/4)
-
 
 if __name__=='__main__':
     robot= Robot(nxt.locator.find_one_brick())
     #robot= Robot(nxt.bluesock.BlueSock('00:16:53:09:46:3B').connect())
-    #robot.mision()
-    robot.aparcar()
+    robot.mision()
