@@ -34,22 +34,26 @@ class Robot:
             pass
         print "Hueco Detectado"
         tachos = self.syncMotor_.leader.get_tacho().tacho_count
-        puedoImprimir = False
+        puedoAparcar = False
 
         while self.sensorUltraSound_.get_distance() > largoCoche:
 
             if self.syncMotor_.leader.get_tacho().tacho_count > tachos + self.cuentasTam_:
                 print "++++++++++++++++Hueco encontrado"
-                puedoImprimir= True
+                puedoAparcar= True
                 break
-                # if puedoImprimir:
+                # if puedoAparcar:
                 #     print "Hueco Vacio"
-                #     puedoImprimir = False
+                #     puedoAparcar = False
 
-        print "Aparcarmiento: ", puedoImprimir
-       
+        print "Aparcarmiento: ", puedoAparcar
+
         self.syncMotor_.brake()
         time.sleep(1)
+        if puedoAparcar:
+            print "Tengo k ir hacia Atras"
+        print "Fin"
+
 
 if __name__=='__main__':
     robot= Robot(nxt.locator.find_one_brick())
